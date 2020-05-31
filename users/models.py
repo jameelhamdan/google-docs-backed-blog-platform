@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
+from django.conf import settings
 from django.utils import timezone
+import djongo.models as mongo
 
 
 class UserManager(BaseUserManager):
@@ -34,7 +36,8 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=256, unique=True)
-    name = models.CharField(max_length=254, null=True, blank=True)
+    username = models.EmailField(max_length=256, unique=True)
+    name = models.CharField(max_length=256, null=True, blank=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -45,4 +48,29 @@ class User(AbstractBaseUser, PermissionsMixin):
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = []
 
+    def get_data(self):
+        return UserData.objects.get(pk=self.pk)
+
     objects = UserManager()
+
+    class Meta:
+        db = settings.DEFAULT_DATABASE
+
+
+class UserData(mongo.Model):
+    id = mongo.CharField(max_length=36, db_column='_id', primary_key=True)
+    created_on = mongo.DateTimeField(auto_now_add=True)
+    updated_on = mongo.DateTimeField(auto_now=True)
+    email = mongo.EmailField(max_length=36, db_index=True, unique=True, null=False)
+    username = mongo.CharField(max_length=256, db_index=True, unique=True, null=False)
+
+    avatar_url = mongo.CharField(max_length=36)
+    short_name = mongo.CharField(max_length=256, null=False)
+    full_name = mongo.CharField(max_length=256, null=False)
+    birth_date = mongo.DateField(null=False)
+
+    objects = mongo.DjongoManager()
+
+    class Meta:
+        db_table = 'user_data'
+        db = settings.MONGO_DATABASE

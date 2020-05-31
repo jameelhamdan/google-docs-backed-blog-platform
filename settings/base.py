@@ -1,4 +1,9 @@
 import os
+import django.db.models.options
+import dj_database_url
+
+# Add option to model meta
+django.db.models.options.DEFAULT_NAMES = django.db.models.options.DEFAULT_NAMES + ('db',)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -10,7 +15,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'mkydu4qp)v)v9_ml)lyxbjb(e1uya84x49&ah84)i0!xwda+bj'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -63,14 +68,41 @@ TEMPLATES = [
 WSGI_APPLICATION = 'app.wsgi.application'
 
 # Database
-# https://docs.djangoproject.com/en/3.0/ref/settings/#databases
+DEFAULT_DATABASE = 'default'
+MONGO_DATABASE = 'mongo'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    DEFAULT_DATABASE: dj_database_url.parse(os.getenv('DEFAULT_DATABASE_URL', 'postgres://postgres:1234@127.0.0.1:5432/googledocs')),
+    MONGO_DATABASE: {
+        'ENGINE': 'djongo',
+        'ENFORCE_SCHEMA': False,
+        'LOGGING': {
+            'version': 1,
+            'loggers': {
+                'djongo': {
+                    'level': 'DEBUG',
+                    'propogate': False,
+                    'handlers': ['console']
+                }
+            },
+            'handlers': {
+                'console': {
+                    'class': 'logging.StreamHandler',
+                    'level': 'DEBUG'
+                }
+            }
+        },
+        'NAME': 'googledocs',
+        'CONN_MAX_AGE': 600,
+        'CLIENT': {
+            'host': os.getenv('MONGO_DATABASE_URL', 'mongodb://localhost:27017'),
+            'minPoolSize': 1,
+            'maxPoolSize': 100,
+        }
+    },
 }
+
+DATABASE_ROUTERS = ['app.db_routers.Router', ]
 
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_REQUIRED = True
