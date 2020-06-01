@@ -9,7 +9,7 @@ class Router:
     def get_database_name(self, model):
         db_name = getattr(model._meta, 'db', '')
         if db_name not in [DEFAULT_DATABASE, MONGO_DATABASE]:
-            raise Exception('Database not defined properly')
+            return DEFAULT_DATABASE
 
         return db_name
 
@@ -23,7 +23,6 @@ class Router:
         return self.get_database_name(obj1) == self.get_database_name(obj2)
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
-        return False
         target_model = apps.get_model(app_label, model_name)
         db_name = getattr(target_model._meta, 'db', '')
         return db_name not in NO_MIGRATION_DATABASES

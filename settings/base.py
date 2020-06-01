@@ -18,7 +18,7 @@ SECRET_KEY = 'mkydu4qp)v)v9_ml)lyxbjb(e1uya84x49&ah84)i0!xwda+bj'
 DEBUG = False
 
 ALLOWED_HOSTS = []
-
+APPEND_SLASH = True
 # Application definition
 
 INSTALLED_APPS = [
@@ -31,10 +31,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'core',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
+    'social_django',
 ]
 
 MIDDLEWARE = [
@@ -104,17 +101,30 @@ DATABASES = {
 
 DATABASE_ROUTERS = ['app.db_routers.Router', ]
 
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-SOCIALACCOUNT_QUERY_EMAIL = True
+LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
 AUTH_USER_MODEL = 'users.User'
+SOCIAL_BACKEND_NAME = 'gmail'
+SOCIAL_AUTH_URL_NAMESPACE = 'social'
+globals()[f'SOCIAL_AUTH_{SOCIAL_BACKEND_NAME.upper()}_KEY'] = os.getenv('GOOGLE_CLIENT_ID')
+globals()[f'SOCIAL_AUTH_{SOCIAL_BACKEND_NAME.upper()}_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET')
+
+SOCIAL_AUTH_PIPELINE = (
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.auth_allowed',
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.user.get_username',
+    'social_core.pipeline.user.create_user',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details'
+    'users.pipelines.user_data'
+)
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
+    'users.backends.GoogleOAuth2',
 ]
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -150,15 +160,3 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 SITE_ID = 1
-
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        }
-    }
-}

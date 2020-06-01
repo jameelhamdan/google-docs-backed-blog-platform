@@ -18,8 +18,14 @@ class AbstractDocument(mongo.Model):
 
 
 class ArticleHistory(mongo.Model):
+    class STATUSES(mongo.TextChoices):
+        DELETED = 'DL', _('Draft')
+        DRAFT = 'DR', _('Deleted')
+        PUBLISHED = 'PB', _('Published')
+
     created_on = mongo.DateTimeField(auto_now_add=True)
-    action = mongo.TextField() # Add more fields and details later
+    action = mongo.CharField(max_length=2, choices=STATUSES.choices)  # Add more fields and details later
+    extra_data = mongo.TextField()
 
     class Meta:
         abstract = True
