@@ -31,7 +31,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'core',
-    'social_django',
 ]
 
 MIDDLEWARE = [
@@ -110,6 +109,8 @@ SOCIAL_AUTH_URL_NAMESPACE = 'social'
 globals()[f'SOCIAL_AUTH_{SOCIAL_BACKEND_NAME.upper()}_KEY'] = os.getenv('GOOGLE_CLIENT_ID')
 globals()[f'SOCIAL_AUTH_{SOCIAL_BACKEND_NAME.upper()}_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET')
 
+SOCIAL_AUTH_STORAGE = 'users.models.BaseStorage'
+
 SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_details',
     'social_core.pipeline.social_auth.social_uid',
@@ -118,12 +119,12 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.get_username',
     'social_core.pipeline.user.create_user',
     'social_core.pipeline.social_auth.associate_user',
+    'users.social.pipeline.user_data',
     'social_core.pipeline.social_auth.load_extra_data',
-    'users.pipelines.user_data',
 )
 
 AUTHENTICATION_BACKENDS = [
-    'users.backends.GoogleOAuth2',
+    'users.social.backend.GoogleOAuth2',
 ]
 
 AUTH_PASSWORD_VALIDATORS = [

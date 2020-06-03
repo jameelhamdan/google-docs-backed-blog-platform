@@ -2,7 +2,10 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from django import forms
+from djongo.database import OperationalError
 import djongo.models as mongo
+from .social.storage import SocialUserMixin, BaseStorage
 
 
 class UserManager(BaseUserManager):
@@ -50,19 +53,68 @@ class User(AbstractBaseUser, PermissionsMixin):
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = []
 
-    def get_data(self):
+    _data = None
+
+    def _query_data(self):
         return UserData.objects.get(pk=self.pk)
 
+    def refresh_data(self):
+        self._data = self._query_data()
+
+    def _get_data(self):
+        # TODO: improve this kind of instance cache (specially when changing UserData)
+        if not self._data:
+            self._data = self._query_data()
+        return self._data
+
+    @property
+    def data(self):
+        return self._data
+
+    @staticmethod
+    def get_data_model():
+        return UserData
+
+    @staticmethod
+    def get_social_auth_model():
+        return SocialAuth
+
     objects = UserManager()
+
+    def save(self, *args, **kwargs):
+        org_pk = self.pk
+        super(User, self).save(*args, **kwargs)
+
+        if not org_pk:
+            self._data = self.get_data_model()(
+                pk=self.pk,
+                username=self.username,
+                email=self.email
+            )
+            self._data.save()
 
     class Meta:
         db = settings.DEFAULT_DATABASE
 
 
+class SocialAuth(mongo.Model, SocialUserMixin):
+    """Social Auth association model"""
+    provider = mongo.CharField(max_length=32, unique=True, db_index=True)
+    uid = mongo.CharField(max_length=255, unique=True, db_index=True)
+    extra_data = mongo.DictField()
+
+    class Meta:
+        abstract = True
+
+
+class SocialAuthForm(forms.ModelForm):
+    class Meta:
+        model = SocialAuth
+        fields = ['uid', 'provider']
+
+
 class UserData(mongo.Model):
     id = mongo.CharField(max_length=36, db_column='_id', primary_key=True)
-    api_id = mongo.CharField(max_length=36, null=True)
-    provider = mongo.CharField(max_length=128, null=True)
     created_on = mongo.DateTimeField(auto_now_add=True)
     updated_on = mongo.DateTimeField(auto_now=True)
     email = mongo.EmailField(max_length=36, db_index=True, unique=True, null=False)
@@ -74,17 +126,34 @@ class UserData(mongo.Model):
     full_name = mongo.CharField(max_length=256, null=False)
     birth_date = mongo.DateField(null=False)
 
+    # Social Auth fields
+    social_auth = mongo.ArrayField(
+        model_container=SocialAuth,
+        model_form_class=SocialAuthForm,
+        default=[]
+    )
+
     objects = mongo.DjongoManager()
     FIELD_MAPPING = {
-        'email': 'email',
-        'username': 'username',
-        'picture': 'avatar_url',
-        'name': 'full_name',
-        'given_name': 'given_name',
-        'family_name': 'family_name',
-        'id': 'api_id'
+        'gmail': {
+            'email': 'email',
+            'username': 'username',
+            'picture': 'avatar_url',
+            'name': 'full_name',
+            'given_name': 'given_name',
+            'family_name': 'family_name',
+            'id': 'api_id'
+        }
     }
 
     class Meta:
         db_table = 'user_data'
         db = settings.MONGO_DATABASE
+
+
+class DjangoStorage(BaseStorage):
+    user = SocialAuth
+
+    @classmethod
+    def is_integrity_error(cls, exception):
+        return exception.__class__ is OperationalError and 'E11000' in exception.message

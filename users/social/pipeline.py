@@ -1,5 +1,6 @@
 from django.conf import settings
-from .models import UserData
+from ..models import UserData
+
 
 def user_data(strategy, details, backend, user=None, *args, **kwargs):
     """Update user details using data from provider."""
@@ -37,17 +38,12 @@ def user_data(strategy, details, backend, user=None, *args, **kwargs):
 
         changed = True
         setattr(user, name, value)
-    
-    # check if user is a new user or existing one
-    if user.pk:
-        user_data = user.get_data()
-    else:
-        # Get provider name from backend
-        user_data = UserData(pk=user.pk, provider=settings.SOCIAL_BACKEND_NAME)
 
     json_changed = False
-    json_field_mapping = UserData.FIELD_MAPPING
-    for name, value in details.items():
+    json_field_mapping = UserData.FIELD_MAPPING[backend.name]
+
+    user_data = user.data
+    for name, value in kwargs['response'].items():
         # Convert to existing user field if mapping exists
         name = json_field_mapping.get(name, name)
         if value is None or not hasattr(user_data, name) or name in protected:
