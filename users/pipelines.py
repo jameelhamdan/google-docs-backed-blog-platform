@@ -1,3 +1,6 @@
+from django.conf import settings
+from .models import UserData
+
 def user_data(strategy, details, backend, user=None, *args, **kwargs):
     """Update user details using data from provider."""
     if not user:
@@ -10,8 +13,10 @@ def user_data(strategy, details, backend, user=None, *args, **kwargs):
     if strategy.setting('NO_DEFAULT_PROTECTED_USER_FIELDS') is True:
         protected = ()
     else:
-        protected = ('username', 'id', 'pk', 'email', 'password',
-                     'is_active', 'is_staff', 'is_superuser',)
+        protected = (
+            'username', 'id', 'pk', 'email', 'password', 'is_active', 'provider',
+            'is_staff', 'is_superuser', 'created_on', 'updated_on', 
+        )
 
     protected = protected + tuple(strategy.setting('PROTECTED_USER_FIELDS', []))
 
@@ -32,6 +37,31 @@ def user_data(strategy, details, backend, user=None, *args, **kwargs):
 
         changed = True
         setattr(user, name, value)
+    
+    # check if user is a new user or existing one
+    if user.pk:
+        user_data = user.get_data()
+    else:
+        # Get provider name from backend
+        user_data = UserData(pk=user.pk, provider=settings.SOCIAL_BACKEND_NAME)
+
+    json_changed = False
+    json_field_mapping = UserData.FIELD_MAPPING
+    for name, value in details.items():
+        # Convert to existing user field if mapping exists
+        name = json_field_mapping.get(name, name)
+        if value is None or not hasattr(user_data, name) or name in protected:
+            continue
+
+        current_value = getattr(user_data, name, None)
+        if current_value == value:
+            continue
+
+        json_changed = True
+        setattr(user_data, name, value)
 
     if changed:
         strategy.storage.user.changed(user)
+
+    if json_changed:
+        user_data.save()

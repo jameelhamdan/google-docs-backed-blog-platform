@@ -7,10 +7,9 @@ NO_MIGRATION_DATABASES = [MONGO_DATABASE]
 
 class Router:
     def get_database_name(self, model):
-        db_name = getattr(model._meta, 'db', '')
+        db_name = getattr(model._meta, 'db', DEFAULT_DATABASE)
         if db_name not in [DEFAULT_DATABASE, MONGO_DATABASE]:
-            return DEFAULT_DATABASE
-
+            raise Exception('Database is not configured properly for this model "%s".' % model._meta.name)
         return db_name
 
     def db_for_read(self, model, **hints):

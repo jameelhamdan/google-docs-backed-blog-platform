@@ -61,17 +61,29 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class UserData(mongo.Model):
     id = mongo.CharField(max_length=36, db_column='_id', primary_key=True)
+    api_id = mongo.CharField(max_length=36, null=True)
+    provider = mongo.CharField(max_length=128, null=True)
     created_on = mongo.DateTimeField(auto_now_add=True)
     updated_on = mongo.DateTimeField(auto_now=True)
     email = mongo.EmailField(max_length=36, db_index=True, unique=True, null=False)
     username = mongo.CharField(max_length=256, db_index=True, unique=True, null=False)
 
     avatar_url = mongo.CharField(max_length=36)
-    short_name = mongo.CharField(max_length=256, null=False)
+    given_name = mongo.CharField(max_length=256, null=False)
+    family_name = mongo.CharField(max_length=256, null=False)
     full_name = mongo.CharField(max_length=256, null=False)
     birth_date = mongo.DateField(null=False)
 
     objects = mongo.DjongoManager()
+    FIELD_MAPPING = {
+        'email': 'email',
+        'username': 'username',
+        'picture': 'avatar_url',
+        'name': 'full_name',
+        'given_name': 'given_name',
+        'family_name': 'family_name',
+        'id': 'api_id'
+    }
 
     class Meta:
         db_table = 'user_data'
