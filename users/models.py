@@ -3,9 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django import forms
-from djongo.database import OperationalError
 import djongo.models as mongo
-from .social.storage import SocialUserMixin, BaseStorage
 
 
 class UserManager(BaseUserManager):
@@ -30,13 +28,23 @@ class UserManager(BaseUserManager):
         user.set_password(password)
 
         user.save(using=self._db)
+
+        UserData(
+            pk=user.pk,
+            username=user.username,
+            email=user.email,
+            **extra_fields
+        ).save()
+
         return user
 
-    def create_user(self, username, email=None, password=None, **extra_fields):
-        return self._create_user(username, email, password, False, False, **extra_fields)
 
-    def create_superuser(self, username, email, password, **extra_fields):
-        return self._create_user(username, email, password, True, True, **extra_fields)
+def create_user(self, username, email, password=None, **extra_fields):
+    return self._create_user(username, email, password, False, False, **extra_fields)
+
+
+def create_superuser(self, username, email, password, **extra_fields):
+    return self._create_user(username, email, password, True, True, **extra_fields)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -52,6 +60,18 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = []
+    PROTECTED_FIELDS = ['id', 'email', 'username', 'is_staff', 'is_superuser', 'is_active', 'last_login', 'date_joined']
+    FIELD_MAPPING = {
+        'google': {
+            'email': 'email',
+            'username': 'username',
+            'picture': 'avatar_url',
+            'name': 'full_name',
+            'given_name': 'given_name',
+            'family_name': 'family_name',
+            'id': 'api_id'
+        }
+    }
 
     _data = None
 
@@ -71,34 +91,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     def data(self):
         return self._data
 
-    @staticmethod
-    def get_data_model():
-        return UserData
-
-    @staticmethod
-    def get_social_auth_model():
-        return SocialAuth
-
     objects = UserManager()
-
-    def save(self, *args, **kwargs):
-        org_pk = self.pk
-        super(User, self).save(*args, **kwargs)
-
-        if not org_pk:
-            self._data = self.get_data_model()(
-                pk=self.pk,
-                username=self.username,
-                email=self.email
-            )
-            self._data.save()
 
     class Meta:
         db = settings.DEFAULT_DATABASE
 
 
-class SocialAuth(mongo.Model, SocialUserMixin):
-    """Social Auth association model"""
+class SocialAuth(mongo.Model):
     provider = mongo.CharField(max_length=32, unique=True, db_index=True)
     uid = mongo.CharField(max_length=255, unique=True, db_index=True)
     extra_data = mongo.DictField()
@@ -124,7 +123,6 @@ class UserData(mongo.Model):
     given_name = mongo.CharField(max_length=256, null=False)
     family_name = mongo.CharField(max_length=256, null=False)
     full_name = mongo.CharField(max_length=256, null=False)
-    birth_date = mongo.DateField(null=False)
 
     # Social Auth fields
     social_auth = mongo.ArrayField(
@@ -134,26 +132,7 @@ class UserData(mongo.Model):
     )
 
     objects = mongo.DjongoManager()
-    FIELD_MAPPING = {
-        'gmail': {
-            'email': 'email',
-            'username': 'username',
-            'picture': 'avatar_url',
-            'name': 'full_name',
-            'given_name': 'given_name',
-            'family_name': 'family_name',
-            'id': 'api_id'
-        }
-    }
 
     class Meta:
         db_table = 'user_data'
         db = settings.MONGO_DATABASE
-
-
-class DjangoStorage(BaseStorage):
-    user = SocialAuth
-
-    @classmethod
-    def is_integrity_error(cls, exception):
-        return exception.__class__ is OperationalError and 'E11000' in exception.message
