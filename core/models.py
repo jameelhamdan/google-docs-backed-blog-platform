@@ -3,6 +3,7 @@ import djongo.models as mongo
 from django import forms
 from users.models import UserData
 from _common import utils
+from django.conf import settings
 
 
 class AbstractDocument(mongo.Model):
@@ -51,3 +52,7 @@ class Article(AbstractDocument):
         model_container=ArticleHistory,
         model_form_class=ArticleHistoryForm,
     )
+
+    class Meta:
+        db_table = 'core_article'
+        db = settings.MONGO_DATABASE

@@ -1,19 +1,23 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-from django.db import models
+from django.db import models, transaction
 from django.conf import settings
 from django.utils import timezone
+from djongo.models.json import JSONField
 from django import forms
 import djongo.models as mongo
 
 
 class UserManager(BaseUserManager):
-    def _create_user(self, username, email, password, is_staff, is_superuser, **extra_fields):
+    def _create_user(self, username, email, password, is_staff, is_superuser, auth_info=None, **extra_fields):
         """
         Creates and saves a User with the given username, email and password.
         """
         now = timezone.now()
         if not username:
             raise ValueError('The given username must be set')
+
+        provider = extra_fields.pop('provider')
+
         email = self.normalize_email(email)
         user = self.model(
             username=username,
@@ -22,29 +26,30 @@ class UserManager(BaseUserManager):
             is_active=True,
             last_login=now,
             date_joined=now,
-            **extra_fields
+            name=extra_fields['name']
         )
 
         user.set_password(password)
 
-        user.save(using=self._db)
+        with transaction.atomic():
+            user.save(using=self._db)
+            user_data = UserData(
+                pk=user.pk,
+                username=user.username,
+                email=user.email,
+                **{k: v for k, v in extra_fields.items() if k in [k for k, v in self.model.FIELD_MAPPING[provider].items()]},
+            )
 
-        UserData(
-            pk=user.pk,
-            username=user.username,
-            email=user.email,
-            **extra_fields
-        ).save()
+            user_data.add_or_update_social_auth(auth_info)
+            user_data.save()
 
         return user
 
+    def create_user(self, username, email, password=None, **extra_fields):
+        return self._create_user(username, email, password, False, False, **extra_fields)
 
-def create_user(self, username, email, password=None, **extra_fields):
-    return self._create_user(username, email, password, False, False, **extra_fields)
-
-
-def create_superuser(self, username, email, password, **extra_fields):
-    return self._create_user(username, email, password, True, True, **extra_fields)
+    def create_superuser(self, username, email, password, **extra_fields):
+        return self._create_user(username, email, password, True, True, **extra_fields)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -66,10 +71,9 @@ class User(AbstractBaseUser, PermissionsMixin):
             'email': 'email',
             'username': 'username',
             'picture': 'avatar_url',
-            'name': 'full_name',
+            'name': 'name',
             'given_name': 'given_name',
             'family_name': 'family_name',
-            'id': 'api_id'
         }
     }
 
@@ -89,7 +93,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def data(self):
-        return self._data
+        return self._get_data()
 
     objects = UserManager()
 
@@ -98,9 +102,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class SocialAuth(mongo.Model):
-    provider = mongo.CharField(max_length=32, unique=True, db_index=True)
-    uid = mongo.CharField(max_length=255, unique=True, db_index=True)
-    extra_data = mongo.DictField()
+    provider = mongo.CharField(max_length=32)
+    uid = mongo.CharField(max_length=255)
+    access_token = mongo.TextField(max_length=255)
+    extra_data = JSONField(default={})
+    created_on = mongo.DateTimeField()
+    updated_on = mongo.DateTimeField()
 
     class Meta:
         abstract = True
@@ -109,7 +116,9 @@ class SocialAuth(mongo.Model):
 class SocialAuthForm(forms.ModelForm):
     class Meta:
         model = SocialAuth
-        fields = ['uid', 'provider']
+        fields = (
+            'provider', 'uid', 'access_token', 'extra_data', 'updated_on', 'created_on'
+        )
 
 
 class UserData(mongo.Model):
@@ -122,7 +131,7 @@ class UserData(mongo.Model):
     avatar_url = mongo.CharField(max_length=36)
     given_name = mongo.CharField(max_length=256, null=False)
     family_name = mongo.CharField(max_length=256, null=False)
-    full_name = mongo.CharField(max_length=256, null=False)
+    name = mongo.CharField(max_length=256, null=False)
 
     # Social Auth fields
     social_auth = mongo.ArrayField(
@@ -132,6 +141,40 @@ class UserData(mongo.Model):
     )
 
     objects = mongo.DjongoManager()
+
+    AUTH_FIELD_MAPPING = {
+        'google': {
+            'sub': 'uid',
+            'access_token': 'access_token',
+            'provider': 'provider',
+        }
+    }
+
+    def add_or_update_social_auth(self, new_data):
+        for provider, data in new_data.items():
+            now = timezone.now()
+            new_social_auth = {
+                'provider': provider,
+                'access_token': data.pop('access_token'),
+                'uid': data.pop('sub'),
+                'extra_data': data,
+                'updated_on': now
+            }
+
+            updated = False
+            for index, social_auth in enumerate(self.social_auth):
+                if social_auth['provider'] == provider:
+                    new_social_auth['created_on'] = social_auth.get('created_on', now)
+                    self.social_auth[index] = new_social_auth
+                    updated = True
+                    break
+
+            if updated:
+                continue
+
+            # if Auth method doesn't exist add it
+            new_social_auth['created_on'] = now
+            self.social_auth += [new_social_auth]
 
     class Meta:
         db_table = 'user_data'

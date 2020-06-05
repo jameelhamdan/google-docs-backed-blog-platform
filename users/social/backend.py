@@ -22,11 +22,20 @@ class GoogleOAuthClient:
 
     GOOGLE_CLIENT_ID = settings.GOOGLE_CLIENT_ID
     GOOGLE_CLIENT_SECRET = settings.GOOGLE_CLIENT_SECRET
-
     complete_url_name = 'users:social_complete'
+    AUTH_CLAIM = 'auth_info'
 
     def __init__(self):
         self.client = WebApplicationClient(self.GOOGLE_CLIENT_ID)
+
+    def get_username(self, email):
+        """
+        Parses email to username
+        :param email:
+        :return: usernmae
+        """
+
+        return email.split('@')[0]
 
     def get_request_uri(self, request):
         """
@@ -55,9 +64,9 @@ class GoogleOAuthClient:
         # Prepare and send request to get tokens! Yay tokens!
         token_url, headers, body = self.client.prepare_token_request(
             self.ACCESS_TOKEN_URL,
-            authorization_response=request.build_absolute_uri(request.path),
             redirect_url=request.build_absolute_uri(request.path),
             code=code,
+            client_secret=self.GOOGLE_CLIENT_SECRET
         )
 
         token_response = requests.post(
@@ -89,14 +98,19 @@ class GoogleOAuthClient:
         for name, value in response_json.items():
             # Convert to existing user field if mapping exists
             name = field_mapping.get(name, name)
-            if value is None or not hasattr(response_json, name):
+            if value is None or not response_json.get(name):
                 continue
 
-            current_value = getattr(response_json, name, None)
-            if current_value == value:
-                continue
+            final_info[name] = value
 
-            setattr(final_info, name, value)
+        if not final_info.get('username'):
+            final_info['username'] = self.get_username(final_info['email'])
+
+        auth_into = token_response.json()
+        auth_into.update({'sub': response_json['sub']})
+        final_info[self.AUTH_CLAIM] = {
+            self.name: auth_into
+        }
 
         return final_info
 
@@ -104,11 +118,12 @@ class GoogleOAuthClient:
         try:
             user = AUTH_MODEL.objects.get(email=email)
             return user
-        except AUTH_MODEL.DoesnotExist:
+        except AUTH_MODEL.DoesNotExist:
             return None
 
     def create_or_update_user(self, user_info):
         user = self.get_user(user_info['email'])
+        auth_info = user_info.pop(self.AUTH_CLAIM)
 
         if user:
             # Update user
@@ -117,7 +132,7 @@ class GoogleOAuthClient:
             for name, value in user_info.items():
                 # Convert to existing user field if mapping exists
                 name = field_mapping.get(name, name)
-                if value is None or not hasattr(user_info, name) or name in protected:
+                if value is None or not hasattr(user.data, name) or name in protected:
                     continue
 
                 current_value = getattr(user.data, name, None)
@@ -126,10 +141,11 @@ class GoogleOAuthClient:
 
                 setattr(user.data, name, value)
 
+            user.data.add_or_update_social_auth(auth_info)
             user.data.save()
 
         else:
             # Create User
-            user = get_user_model().create_user(user_info['username'].lower(), user_info['email'], None, **user_info)
+            user = AUTH_MODEL.objects.create_user(user_info.pop('username').lower(), user_info.pop('email'), None, auth_info=auth_info, provider=self.name, **user_info)
 
         return user
