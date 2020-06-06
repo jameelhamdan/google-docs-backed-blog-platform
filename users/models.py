@@ -172,8 +172,8 @@ class UserData(mongo.Model):
             if updated:
                 continue
 
-            # if Auth method doesn't exist add it
             new_social_auth['created_on'] = now
+            # if Auth method doesn't exist add it
             self.social_auth += [new_social_auth]
 
     class Meta:

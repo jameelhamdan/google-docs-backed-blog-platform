@@ -97,11 +97,11 @@ class GoogleOAuthClient:
         field_mapping = AUTH_MODEL.FIELD_MAPPING[self.name]
         for name, value in response_json.items():
             # Convert to existing user field if mapping exists
-            name = field_mapping.get(name, name)
             if value is None or not response_json.get(name):
                 continue
 
-            final_info[name] = value
+            name_mapping = field_mapping.get(name, name)
+            final_info[name_mapping] = value
 
         if not final_info.get('username'):
             final_info['username'] = self.get_username(final_info['email'])

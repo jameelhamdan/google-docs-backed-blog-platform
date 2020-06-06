@@ -1,0 +1,115 @@
+{% load static %}
+{% load i18n %}
+<div class="nav-container ">
+    <div class="bar bg--dark bar--sm visible-sm visible-xs">
+        <div class="container">
+            <div class="row">
+                <div class="col-3 col-md-2">
+                    <a href="{% url 'core:home' %}">
+                        <img class="logo logo-dark" alt="logo" src="{% static 'img/logo-dark.png' %}">
+                        <img class="logo logo-light" alt="logo" src="{% static 'img/logo-light.png' %}">
+                    </a>
+                </div>
+                <div class="col-9 col-md-10 text-right">
+                    <a href="#" class="hamburger-toggle" data-toggle-class="#menu5;hidden-xs hidden-sm">
+                        <i class="icon icon--sm stack-interface stack-menu"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <nav class="bar bar--sm bg--dark" id="menu5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-1 hidden-xs hidden-sm">
+                    <div class="bar__module">
+                        <a href="{% url 'core:home' %}">
+                            <img class="logo logo-dark" alt="logo" src="{% static 'img/logo-dark.png' %}">
+                            <img class="logo logo-light" alt="logo" src="{% static 'img/logo-light.png' %}">
+                        </a>
+                    </div>
+                    <!--end module-->
+                </div>
+                <div class="col-lg-4">
+                    <div class="bar__module">
+                        <ul class="menu-horizontal">
+                            <li class="dropdown">
+                                <span class="dropdown__trigger">{% trans 'Explore' %}</span>
+                                <div class="dropdown__container" style="left: -490px;">
+                                    <div class="container">
+                                        <div class="row">
+                                            <div class="col-md-12 dropdown__content dropdown__content--lg" style="left: 0px;">
+                                                <div class="pos-absolute col-lg-5 imagebg hidden-sm hidden-xs" data-overlay="4">
+                                                    <div class="background-image-holder" style="background: url(&quot;{% static 'img/dropdown.jpg' %}&quot;); opacity: 1;">
+                                                        <img alt="background" src="{% static 'img/dropdown.jpg' %}">
+                                                    </div>
+                                                </div>
+                                                <div class="row justify-content-end">
+                                                    <div class="col-lg-6">
+                                                        <div class="row">
+                                                            <div class="col-lg-4">
+                                                                <h5>Explore</h5>
+                                                                <ul class="menu-vertical">
+                                                                    <li>
+                                                                        <a href="#">TEST</a>
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                        <!--end of row-->
+                                                    </div>
+                                                    <!--end of col-->
+                                                </div>
+                                                <!--end of row-->
+                                            </div>
+                                            <!--end dropdown content-->
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--end dropdown container-->
+                            </li>
+                            {% if request.user.is_authenticated %}
+                                <li>
+                                    <a href="#">
+                                        <i class="stack-interface stack-cog"></i> {% trans 'Manage' %}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+
+                {% if request.user.is_authenticated %}
+                    <div class="col-lg-6 offset-lg-1 text-right text-left-xs">
+                        <div class="bar__module">
+                            <ul class="menu-horizontal">
+                                <li class="dropdown">
+                                <span class="dropdown__trigger">
+                                    {% if request.user.data.avatar_url %}
+                                        <img alt="avatar" class="avatar rounded image--xxs" src="{{ request.user.data.avatar_url }}"> {{ request.user.data.name }}
+                                    {% else %}
+                                        <img alt="avatar" class="avatar rounded image--xxs" src="{% static 'img/avatar-placeholder.png' %}"> {{ request.user.data.name }}
+                                    {% endif %}
+                                </span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="bar__module">
+                            <a class="btn btn--primary btn--sm type--uppercase" href="#">
+                                <span class="btn__text">{% trans 'Post' %}</span>
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-lg-3 offset-lg-4 text-right text-left-xs">
+                        <div class="bar__module">
+                            <a class="btn btn--sm type--uppercase" href="{% url 'users:social_login' %}">
+                                <span class="btn__text">{% trans 'Log In' %}</span>
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+</div>
