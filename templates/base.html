@@ -1,9 +1,11 @@
 {% load static %}
+{% load i18n %}
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>{{ page_titple }}</title>
+        <title>{% if page_title %}{{ page_title }}{% else %}{% trans 'Website' %}{% endif %}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="Site Description Here">
         <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet" type="text/css" media="all" />

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-lg-4" style="min-height: 362.656px;">
+            <div class="boxed boxed--lg boxed--border" data-scroll-class="180px:pos-fixed" style="max-width: 380px;">
+                <div class="text-block text-center">
+                    {% if user.data.avatar_url %}
+                        <img alt="avatar" src="{{ user.data.avatar_url }}" class="image--md">
+                    {% else %}
+                        <img alt="avatar" src="{% static 'img/avatar-placeholder.png' %}" class="image--md">
+                    {% endif %}
+
+                    <span class="h5">{{ user.name }}</span>
+                </div>
+                <hr>
+                <div class="text-block clearfix text-center">
+                    <ul class="row row--list">
+                        <li class="col-md-12">
+                            <span class="type--fine-print block">{% trans 'Member Since' %}:</span>
+                            <span>{{ user.date_joined|date }}</span>
+                        </li>
+                        <li class="col-md-12">
+                            <span class="type--fine-print block">Contact:</span>
+                            <a href="mailto:{{ user.email }}">{{ user.email }}</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <h2>stuff by user goes here</h2>
+        </div>
+    </div>
+{% endblock %}
