@@ -8,4 +8,5 @@ django-jsoneditor>=0.0.12
 sqlparse==0.2.4
 oauthlib
 dj_database_url
+django-crispy-forms==1.9.1
 requests

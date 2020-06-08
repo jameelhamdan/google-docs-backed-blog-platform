@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'crispy_forms',
     'users',
     'core',
 ]
@@ -61,6 +62,8 @@ TEMPLATES = [
         },
     },
 ]
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 WSGI_APPLICATION = 'app.wsgi.application'
 
