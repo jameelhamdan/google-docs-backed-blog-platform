@@ -21,5 +21,4 @@
 
 # Jupyter notebook
 *.ipynb  text
-static/css/* linguist-vendored
-static/less/* linguist-vendored
+static/* linguist-vendored

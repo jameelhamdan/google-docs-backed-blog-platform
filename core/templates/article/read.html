@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <article>
+                <div class="article__title text-center">
+                    <h1 class="h2">{{ article.title }}</h1>
+                    <span>on {{ article.created_on|date }} by </span>
+                    <span>
+                        <a href="{{ article.created_by.get_absolute_url }}">{{ article.created_by.name }}</a>
+                    </span>
+                </div>
+                <div class="article__body">
+                    {{ article.content|safe }}
+                </div>
+                <div class="article__share text-center">
+                    <a class="btn bg--facebook btn--icon" href="#">
+                        <span class="btn__text">
+                            <i class="socicon socicon-facebook"></i>
+                            Share on Facebook
+                        </span>
+                    </a>
+                    <a class="btn bg--twitter btn--icon" href="#">
+                        <span class="btn__text">
+                            <i class="socicon socicon-twitter"></i>
+                            Share on Twitter
+                        </span>
+                    </a>
+                </div>
+            </article>
+        </div>
+    </div>
+{% endblock %}

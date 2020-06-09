@@ -1,5 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
+from django.urls import reverse_lazy
 from django.utils import timezone
 from django import forms
 import djongo.models as mongo
@@ -87,8 +88,11 @@ class Article(AbstractDocument):
     def save(self, *args, **kwargs):
         if not self.pk:
             self.add_log(ArticleHistory.STATUSES.ADDED)
-        
+        self.slug = utils.unique_slug_generator(self)
         super(Article, self).save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse_lazy('article:read', kwargs={'slug': self.slug})
 
     class Meta:
         db_table = 'core_article'

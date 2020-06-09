@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models, transaction
+from django.urls import reverse_lazy
 from django.conf import settings
 from django.utils import timezone
 from djongo.models.json import JSONField
@@ -95,6 +96,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     def data(self):
         return self._get_data()
 
+    def get_absolute_url(self):
+        return reverse_lazy('profile:profile', kwargs={'username': self.username})
+
     objects = UserManager()
 
     class Meta:
@@ -149,6 +153,9 @@ class UserData(mongo.Model):
             'provider': 'provider',
         }
     }
+
+    def get_absolute_url(self):
+        return reverse_lazy('profile:profile', kwargs={'username': self.username})
 
     def add_or_update_social_auth(self, new_data):
         for provider, data in new_data.items():

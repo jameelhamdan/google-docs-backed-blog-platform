@@ -7,15 +7,14 @@ from crispy_forms.layout import Submit, Layout, Div, Field
 class AddArticleForm(forms.ModelForm):
     class Meta:
         model = Article
-        fields = ('title', 'slug', )
+        fields = ('title',)
 
     def __init__(self, *args, **kwargs):
         super(AddArticleForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Div(
-                Field('title', wrapper_class='col-md-6'),
-                Field('slug', wrapper_class='col-md-6'),
+                Field('title', wrapper_class='col-md-12'),
                 css_class='form-row')
         )
 
@@ -26,15 +25,14 @@ class AddArticleForm(forms.ModelForm):
 class ChangeArticleForm(forms.ModelForm):
     class Meta:
         model = Article
-        fields = ('title', 'slug', )
+        fields = ('title',)
 
     def __init__(self, *args, **kwargs):
         super(ChangeArticleForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Div(
-                Field('title', wrapper_class='col-md-6'),
-                Field('slug', wrapper_class='col-md-6'),
+                Field('title', wrapper_class='col-md-12'),
                 css_class='form-row')
         )
         self.helper.add_input(Submit('submit', 'Update', css_class='btn-primary'))
