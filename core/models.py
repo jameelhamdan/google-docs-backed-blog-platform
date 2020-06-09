@@ -7,6 +7,10 @@ import djongo.models as mongo
 from djongo.models.json import JSONField
 from users.models import UserData
 from _common import utils
+from clients import google_client
+
+
+GOOGLE_CLIENT = google_client.GoogleClient()
 
 
 class AbstractDocument(mongo.Model):
@@ -59,7 +63,8 @@ class Article(AbstractDocument):
     title = mongo.CharField(max_length=256, db_index=True)
     slug = mongo.SlugField(unique=True)
     content = mongo.TextField(null=True)
-    google_file_id = mongo.TextField(null=True)
+    file_id = mongo.TextField(null=True)
+    revision_id = mongo.TextField(null=True)
     status = mongo.CharField(max_length=2, choices=STATUSES.choices, default=STATUSES.DRAFT)
     history = mongo.ArrayField(
         model_container=ArticleHistory,
@@ -80,15 +85,26 @@ class Article(AbstractDocument):
             self.save()
 
     def add_to_google(self):
-        pass
+        access_token = self.created_by.get_access_token()
+        result = GOOGLE_CLIENT.add_document(access_token, self.title)
+        self.file_id = result['document_id']
+        self.revision_id = result['revision_id']
 
     def update_from_google(self):
-        pass
+        access_token = self.created_by.get_access_token()
+        result = GOOGLE_CLIENT.get_document(access_token, self.file_id)
+        self.revision_id = result['revision_id']
+        self.content = result['html_content']
 
     def save(self, *args, **kwargs):
         if not self.pk:
+            self.slug = utils.unique_slug_generator(self)
             self.add_log(ArticleHistory.STATUSES.ADDED)
-        self.slug = utils.unique_slug_generator(self)
+            self.add_to_google()
+        else:
+            self.add_log(ArticleHistory.STATUSES.UPDATED)
+            self.update_from_google()
+
         super(Article, self).save(*args, **kwargs)
 
     def get_absolute_url(self):

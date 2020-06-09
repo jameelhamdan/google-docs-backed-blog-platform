@@ -4,7 +4,7 @@ from django.contrib.auth import logout
 from .social.backend import GoogleOAuthClient
 from django.contrib.auth import login
 
-GOOGLE_CLIENT = GoogleOAuthClient()
+GOOGLE_AUTH_CLIENT = GoogleOAuthClient()
 
 
 class LogoutView(generic.RedirectView):
@@ -17,12 +17,12 @@ class LogoutView(generic.RedirectView):
 
 class SocialLoginView(generic.RedirectView):
     def get_redirect_url(self, *args, **kwargs):
-        return GOOGLE_CLIENT.get_request_uri(self.request)
+        return GOOGLE_AUTH_CLIENT.get_authorization_uri(self.request)
 
 
 class SocialLoginCompleteView(generic.RedirectView):
     def get_redirect_url(self, *args, **kwargs):
-        user_info = GOOGLE_CLIENT.get_info_after_complete(self.request)
-        user = GOOGLE_CLIENT.create_or_update_user(user_info)
+        user_info = GOOGLE_AUTH_CLIENT.get_info_after_complete(self.request)
+        user = GOOGLE_AUTH_CLIENT.create_or_update_user(user_info)
         login(self.request, user)
         return settings.LOGIN_REDIRECT_URL

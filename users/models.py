@@ -157,6 +157,13 @@ class UserData(mongo.Model):
     def get_absolute_url(self):
         return reverse_lazy('profile:profile', kwargs={'username': self.username})
 
+    def get_access_token(self, provider='google'):
+        for auth in self.social_auth:
+            if auth['provider'] == provider:
+                return auth['access_token']
+
+        raise Exception('This provider is not active for this user!')
+
     def add_or_update_social_auth(self, new_data):
         for provider, data in new_data.items():
             now = timezone.now()
