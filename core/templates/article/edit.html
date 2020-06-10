@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    {% if form.errors %}
+        {% for error in form.non_field_errors %}
+            <div class="alert alert-danger">
+                <strong>{{ error|escape }}</strong>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <div class="row">
+        <div class="col-12">
+            <form action="" method="POST" class="form">
+                {% crispy form %}
+            </form>
+        </div>
+        <div class="col-12">
+            <h1 class="mb-2 border-bottom">{% trans 'Document Preview' %}</h1>
+            <div>
+                {{ object.content|safe }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

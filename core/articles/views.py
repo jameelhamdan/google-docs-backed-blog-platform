@@ -22,7 +22,7 @@ class AddArticleView(mixins.PageMixin, generic.CreateView):
 
 
 class ChangeArticleView(mixins.PageMixin, generic.UpdateView):
-    template_name = 'article/add.html'
+    template_name = 'article/edit.html'
     form_class = forms.ChangeArticleForm
     queryset = Article.objects.all()
     title = _('Change Article')
