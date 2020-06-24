@@ -14,3 +14,11 @@ class ProfileView(mixins.PageMixin, generic.DetailView):
     title_template = _('%s Profile')
     title_object = True
     title_object_attribute = 'name'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(ProfileView, self).get_context_data(**kwargs)
+
+        # TODO: Paginate this
+        context['user_articles'] = self.object.data.added_articles.all()
+
+        return context

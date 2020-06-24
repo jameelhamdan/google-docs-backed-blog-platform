@@ -17,18 +17,18 @@ def generate_uuid(repeat=1):
     return final_uuid
 
 
-def unique_slug_generator(instance, new_slug=None):
+def unique_slug_generator(instance, new_slug=None, field_name='title'):
     """
     This is for a Django project and it assumes your instance
-    has a model with a slug field and a title character (char) field.
+    has a model with a slug field and a title/name character (char) field.
     """
     if new_slug is not None:
         slug = new_slug
     else:
-        slug = slugify(instance.title)
+        slug = slugify(getattr(instance, field_name))
 
     klass = instance.__class__
-    qs_exists = klass .objects.filter(slug=slug).exists()
+    qs_exists = klass.objects.filter(slug=slug).exists()
     if qs_exists:
         new_slug = f'{slug}-{random_str(4)}'
         return unique_slug_generator(instance, new_slug=new_slug)

@@ -65,7 +65,7 @@
                             </li>
                             {% if request.user.is_authenticated %}
                                 <li>
-                                    <a href="#">
+                                    <a href="{{ request.user.get_absolute_url }}">
                                         <i class="stack-interface stack-cog"></i> {% trans 'Manage' %}
                                     </a>
                                 </li>

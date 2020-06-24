@@ -15,7 +15,6 @@ GOOGLE_CLIENT = google_client.GoogleClient()
 
 class AbstractDocument(mongo.Model):
     id = mongo.CharField(max_length=36, db_column='_id', primary_key=True)
-    created_by = mongo.ForeignKey(UserData, on_delete=mongo.CASCADE, null=False)
     created_on = mongo.DateTimeField(auto_now_add=True)
     updated_on = mongo.DateTimeField(auto_now=True)
 
@@ -53,6 +52,28 @@ class ArticleHistoryForm(forms.ModelForm):
         fields = ('action', 'extra_data', 'created_on')
 
 
+class Category(mongo.Model):
+    slug = mongo.SlugField(unique=True, db_column='_id', primary_key=True)
+    name = mongo.CharField(max_length=64)
+    is_active = mongo.BooleanField(default=False)
+    created_on = mongo.DateTimeField(auto_now_add=True)
+    updated_on = mongo.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.slug = utils.unique_slug_generator(self, field_name='name')
+        super(Category, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'core_category'
+        db = settings.MONGO_DATABASE
+        verbose_name = 'Category'
+        verbose_name_plural = 'Categories'
+
+
 class Article(AbstractDocument):
     class STATUSES(mongo.TextChoices):
         DELETED = 'DL', _('Delete')
@@ -60,12 +81,15 @@ class Article(AbstractDocument):
         PUBLISHED = 'PB', _('Publish')
         UNPUBLISHED = 'UP', _('Unpublish')
 
-    title = mongo.CharField(max_length=256, db_index=True)
+    title = mongo.CharField(max_length=128, verbose_name=_('Title'), db_index=True, blank=False)
     slug = mongo.SlugField(unique=True)
-    content = mongo.TextField(null=True)
+    desc = mongo.TextField(null=True, verbose_name=_('Short Description'), max_length=256, blank=False)
+    category = mongo.ForeignKey(Category, on_delete=mongo.PROTECT, verbose_name=_('Category'), related_name='articles', null=False)
+    content = mongo.TextField(null=True, verbose_name=_('Content'))
     file_id = mongo.TextField(null=True)
     revision_id = mongo.TextField(null=True)
-    status = mongo.CharField(max_length=2, choices=STATUSES.choices, default=STATUSES.DRAFT)
+    status = mongo.CharField(max_length=2, verbose_name=_('Status'), choices=STATUSES.choices, default=STATUSES.DRAFT)
+    created_by = mongo.ForeignKey(UserData, on_delete=mongo.PROTECT, related_name='added_articles', null=False)
     history = mongo.ArrayField(
         model_container=ArticleHistory,
         model_form_class=ArticleHistoryForm,
@@ -108,7 +132,7 @@ class Article(AbstractDocument):
         super(Article, self).save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse_lazy('article:read', kwargs={'slug': self.slug})
+        return reverse_lazy('articles:read', kwargs={'slug': self.slug})
 
     class Meta:
         db_table = 'core_article'

@@ -31,7 +31,28 @@
             </div>
         </div>
         <div class="col-lg-8">
-            <h2>stuff by user goes here</h2>
+            <div class="masonry masonry-blog-list">
+                <div class="masonry__container masonry--active" style="position: relative;">
+                    {% for article in user_articles %}
+                        <article class="masonry__item boxed boxed--border w-100" style="position: absolute; left: 0px; top: 0px;">
+                            <div class="article__title text-center">
+                                <a href="{{ article.get_absolute_url }}">
+                                    <h2>{{ article.title }}</h2>
+                                </a>
+                                <span>{{ article.created_on|date }} in </span>
+                                <span>
+                                <a href="#">Web Design</a>
+                            </span>
+                            </div>
+                            <!--end article title-->
+                            <div class="article__body">
+                                <p>{{ article.desc }}</p>
+                                <a href="{{ article.get_absolute_url }}">Continue reading »</a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
