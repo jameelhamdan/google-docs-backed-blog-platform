@@ -10,3 +10,4 @@ oauthlib
 dj_database_url
 django-crispy-forms==1.9.1
 requests
+BeautifulSoup

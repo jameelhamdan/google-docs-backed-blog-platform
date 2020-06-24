@@ -1,1 +1,13 @@
 /*! Place your custom styles here */
+
+article .article__settings {
+    top: 0;
+    right: 0;
+    padding: 1rem;
+    position: absolute;
+    font-size: 2rem;
+}
+
+article .article__body {
+    overflow-wrap: break-word;
+}

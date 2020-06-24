@@ -19,6 +19,6 @@ class ProfileView(mixins.PageMixin, generic.DetailView):
         context = super(ProfileView, self).get_context_data(**kwargs)
 
         # TODO: Paginate this
-        context['user_articles'] = self.object.data.added_articles.all()
+        context['user_articles'] = self.object.data.added_articles.select_related('category')
 
         return context

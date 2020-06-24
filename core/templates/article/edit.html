@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load i18n %}
 {% load crispy_forms_tags %}
-
+{% block styles %}
+{% endblock %}
 {% block content %}
     {% if form.errors %}
         {% for error in form.non_field_errors %}
@@ -16,11 +18,8 @@
                 {% crispy form %}
             </form>
         </div>
-        <div class="col-12">
-            <h1 class="mb-2 border-bottom">{% trans 'Document Preview' %}</h1>
-            <div class="article-view">
-                {{ object.content|safe }}
-            </div>
-        </div>
     </div>
+{% endblock %}
+{% block scripts %}
+    {{ form.media }}
 {% endblock %}

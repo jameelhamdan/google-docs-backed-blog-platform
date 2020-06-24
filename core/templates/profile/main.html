@@ -39,9 +39,14 @@
                                 <a href="{{ article.get_absolute_url }}">
                                     <h2>{{ article.title }}</h2>
                                 </a>
+                                {% if request.user.id == user.id %}
+                                    <div class="article__settings">
+                                        <a title="{% trans 'Edit' %}" href="{% url 'articles:change' slug=article.slug %}"><i class="ft-edit"></i></a>
+                                    </div>
+                                {% endif %}
                                 <span>{{ article.created_on|date }} in </span>
                                 <span>
-                                <a href="#">Web Design</a>
+                                <a href="#">{{ article.category }}</a>
                             </span>
                             </div>
                             <!--end article title-->

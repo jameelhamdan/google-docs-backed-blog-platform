@@ -1,0 +1,2 @@
+class EditorJSParseError(Exception):
+    pass
