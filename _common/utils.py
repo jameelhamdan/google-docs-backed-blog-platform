@@ -117,7 +117,7 @@ def parse_editor_js_data(data: str) -> str:
                 html += wrap_block(f'<div class="cdx-block ce-rawtool"><pre class= ""> {html_data} </pre></div>')
             elif block_type == 'image':
                 caption = block_data['caption']
-                file_url = block_data['file']['url']
+                file_url = block_data['url']
 
                 html += wrap_block(
                     f'''

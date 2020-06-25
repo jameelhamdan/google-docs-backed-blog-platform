@@ -1,0 +1,46 @@
+{% load i18n %}
+
+{% for article in user_articles %}
+    <article class="masonry__item boxed boxed--border w-100" style="position: absolute; left: 0px; top: 0px;">
+        <div class="article__title text-center">
+            <h2>
+                <a href="{{ article.get_absolute_url }}">
+                    <span class="text-dark">{{ article.title }}</span>
+                </a>
+            </h2>
+            {% if is_manager %}
+                <div class="article__settings">
+                    <div class="dropdown dropdown--absolute">
+                        <span class="dropdown__trigger"><i class="ft-more-horizontal"></i></span>
+                        <div class="dropdown__container">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-lg-2 dropdown__content">
+                                        <ul class="menu-vertical text-left">
+                                            <li><a href="{% url 'articles:change' slug=article.slug %}"><i class="ft-edit"></i> {% trans 'Edit' %}</a></li>
+                                            {% if ARTICLE_STATUSES.PUBLISHED != article.status %}
+                                                <li><a href="{% url 'articles:publish' slug=article.slug %}"><i class="ft-upload"></i> {% trans 'Publish' %}</a></li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            <span>{{ article.created_on|date }} in </span>
+            <span>
+                <a href="#">{{ article.category }}</a>
+            </span>
+            {% if is_manager %}
+                <span class="float-right">{{ article.get_status_repr }}</span>
+            {% endif %}
+        </div>
+        <!--end article title-->
+        <div class="article__body">
+            <p>{{ article.desc }}</p>
+            <a href="{{ article.get_absolute_url }}">Continue reading »</a>
+        </div>
+    </article>
+{% endfor %}

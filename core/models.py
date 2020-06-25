@@ -106,8 +106,6 @@ class Article(AbstractDocument):
         if not self.pk:
             self.slug = utils.unique_slug_generator(self)
             self.add_log(ArticleHistory.STATUSES.ADDED)
-        else:
-            self.add_log(ArticleHistory.STATUSES.UPDATED)
 
         super(Article, self).save(*args, **kwargs)
 
@@ -116,6 +114,15 @@ class Article(AbstractDocument):
 
     def get_content_html(self):
         return utils.parse_editor_js_data(self.content)
+
+    def get_status_repr(self):
+        mapping = {
+            self.STATUSES.DELETED: _('Deleted'),
+            self.STATUSES.DRAFT: _('Draft'),
+            self.STATUSES.PUBLISHED: _('Published'),
+            self.STATUSES.UNPUBLISHED: _('Unpublished')
+        }
+        return mapping.get(self.status, self.status)
 
     class Meta:
         db_table = 'core_article'

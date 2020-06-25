@@ -2,12 +2,24 @@
 
 article .article__settings {
     top: 0;
-    right: 0;
+    left: 0;
     padding: 1rem;
     position: absolute;
+}
+article .article__title  {
+    text-decoration: none;
+}
+
+article .article__settings .dropdown__trigger i {
     font-size: 2rem;
 }
 
 article .article__body {
     overflow-wrap: break-word;
+}
+
+.custom-form-button {
+    border: 0;
+    padding: 0.46428571em 0;
+    outline: none;
 }
