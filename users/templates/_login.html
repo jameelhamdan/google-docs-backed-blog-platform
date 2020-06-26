@@ -1,0 +1,41 @@
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+<section class="unpad ">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="boxed boxed--lg bg--white text-center feature">
+                    <div class="modal-close modal-close-cross"></div>
+                    <h3>{% trans 'Login to Your Account' %}</h3>
+                    <a class="btn block btn--icon bg--googleplus type--uppercase" href="{% url 'users:social_login' %}">
+                        <span class="btn__text">
+                            <i class="socicon-google"></i> {% trans 'Login with Google' %}
+                        </span>
+                    </a>
+                    <hr data-title="OR">
+                    <div class="feature__body text-left">
+                        {% if form.errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    <strong>{{ error|escape }}</strong>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        <form method="post" action="{{ form_url }}">
+                             {% crispy form %}
+                        </form>
+                        <span class="type--fine-print block">{% trans 'Dont have an account yet?' %}
+                            <a href="#">{% trans 'Create account' %}</a>
+                        </span>
+                        <span class="type--fine-print block">{% trans 'Forgot your username or password?' %}
+                            <a href="#">{% trans 'Recover account' %}</a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--end of row-->
+    </div>
+    <!--end of container-->
+</section>

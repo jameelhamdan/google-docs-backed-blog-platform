@@ -1,8 +1,9 @@
 from django.conf import settings
 from django.views import generic
-from django.contrib.auth import logout
+from django.contrib.auth import login, logout, views as auth_views
 from .social.backend import GoogleOAuthClient
-from django.contrib.auth import login
+from . import models, forms
+
 
 GOOGLE_AUTH_CLIENT = GoogleOAuthClient()
 
@@ -26,3 +27,20 @@ class SocialLoginCompleteView(generic.RedirectView):
         user = GOOGLE_AUTH_CLIENT.create_or_update_user(user_info)
         login(self.request, user)
         return settings.LOGIN_REDIRECT_URL
+
+
+class LoginView(auth_views.LoginView):
+    http_method_names = ['post']
+    form_class = forms.LoginForm
+
+
+class RegisterView(generic.edit.BaseFormView):
+    http_method_names = ['post']
+    form_class = forms.RegisterForm
+
+    def form_valid(self, form):
+        email = form.cleaned_data['email']
+        password = form.cleaned_data['password']
+        username = None
+
+        return models.User.objects.create_user(username, email, password, provider='default')
