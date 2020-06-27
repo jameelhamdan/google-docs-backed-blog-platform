@@ -1,0 +1,14 @@
+{% if auth_forms %}
+    <div class="all-page-modals">
+        <div class="modal-container" data-modal-index="0">
+            <div class="modal-content section-modal">
+                {% include 'partial/_login.html' with form=auth_forms.login_form form_url=auth_forms.login_url %}
+            </div>
+        </div>
+        <div class="modal-container" data-modal-index="1">
+            <div class="modal-content section-modal">
+                {% include 'partial/_register.html' with form=auth_forms.register_form form_url=auth_forms.register_url %}
+            </div>
+        </div>
+    </div>
+{% endif %}

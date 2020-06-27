@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+
+{% block page_content %}
+    <a id="start"></a>
+    {% include 'partial/_navbar.html' with bare_base=True %}
+
+    <div class="main-container">
+        <section class="height-100 imagebg text-center" data-overlay="4">
+            <div class="background-image-holder" style="background: url(&quot;{% static 'img/bg/auth.jpg' %}&quot;); opacity: 1;">
+                <img alt="background" src="{% static 'img/bg/auth.jpg' %}">
+            </div>
+            <div class="container pos-vertical-center">
+                {% block content%}{% endblock %}
+            </div>
+        </section>
+    </div>
+{% endblock %}

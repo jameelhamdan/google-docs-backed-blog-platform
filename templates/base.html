@@ -35,11 +35,18 @@
                 {% include 'partial/_footer.html' %}
             </div>
 
-            <!--<div class="loader"></div>-->
+
+            {% if not request.user.is_authenticated %}
+                {% include 'partial/_auth_modals.html' %}
+            {% endif %}
+
             <a class="back-to-top inner-link" href="#start" data-scroll-class="100vh:active">
                 <i class="stack-interface stack-up-open-big"></i>
             </a>
+
+
         {% endblock %}
+
         <script src="{% static 'js/jquery-3.1.1.min.js' %}"></script>
         <script src="{% static 'js/flickity.min.js' %}"></script>
         <script src="{% static 'js/parallax.js' %}"></script>

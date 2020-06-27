@@ -6,6 +6,7 @@ from django.utils import timezone
 from djongo.models.json import JSONField
 from django import forms
 import djongo.models as mongo
+from _common import utils
 
 
 class UserManager(BaseUserManager):
@@ -14,8 +15,11 @@ class UserManager(BaseUserManager):
         Creates and saves a User with the given username, email and password.
         """
         now = timezone.now()
+        if not email:
+            raise ValueError('The given email must be set')
+
         if not username:
-            raise ValueError('The given username must be set')
+            username = self.model.generate_username(email)
 
         provider = extra_fields.pop('provider')
 
@@ -40,8 +44,9 @@ class UserManager(BaseUserManager):
                 email=user.email,
                 **{k: v for k, v in extra_fields.items() if k in [k for k, v in self.model.FIELD_MAPPING[provider].items()]},
             )
+            if auth_info:
+                user_data.add_or_update_social_auth(auth_info)
 
-            user_data.add_or_update_social_auth(auth_info)
             user_data.save()
 
         return user
@@ -68,6 +73,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = []
     PROTECTED_FIELDS = ['id', 'email', 'username', 'is_staff', 'is_superuser', 'is_active', 'last_login', 'date_joined']
     FIELD_MAPPING = {
+        'default': {
+            'email': 'email',
+            'name': 'name',
+            'given_name': 'given_name',
+            'family_name': 'family_name',
+            'avatar_url': 'avatar_url',
+        },
         'google': {
             'email': 'email',
             'username': 'username',
@@ -98,6 +110,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_absolute_url(self):
         return reverse_lazy('profile:profile', kwargs={'username': self.username})
+
+    @staticmethod
+    def generate_username(email):
+        base_username = email.split('@')[0]
+        return utils.klass_unique_slug_generator(User, base_username, slug_name='username', separator='')
 
     objects = UserManager()
 

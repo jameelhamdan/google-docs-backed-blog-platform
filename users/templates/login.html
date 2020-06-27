@@ -1,0 +1,28 @@
+{% extends 'bare_base.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-7 col-lg-5">
+            <h3>{% trans 'Login to Your Account' %}</h3>
+            <a class="btn block btn--icon bg--googleplus type--uppercase" href="{% url 'users:social_login' %}">
+                <span class="btn__text">
+                    <i class="socicon-google"></i> {% trans 'Login with Google' %}
+                </span>
+            </a>
+            <hr>
+            <div class="feature__body text-left">
+                <form method="post" action="{{ form_url }}">
+                    {% crispy form %}
+                </form>
+                <span class="type--fine-print block">{% trans 'Dont have an account yet?' %}
+                    <a href="{% url 'users:register' %}">{% trans 'Create account' %}</a>
+                </span>
+                <span class="type--fine-print block">{% trans 'Forgot your username or password?' %}
+                    <a href="#">{% trans 'Recover account' %}</a>
+                </span>
+            </div>
+        </div>
+    </div>
+{% endblock %}
