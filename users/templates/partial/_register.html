@@ -1,0 +1,27 @@
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+<section class="unpad">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="boxed boxed--lg bg--white text-center feature">
+                    <div class="modal-close modal-close-cross"></div>
+                    <h2>{% trans 'Create an account' %}</h2>
+                    <p class="lead">{% trans 'Get started now, for 100% free.' %}</p>
+                    <a class="btn block btn--icon bg--googleplus type--uppercase" href="{% url 'users:social_login' %}">
+                        <span class="btn__text">
+                            <i class="socicon-google"></i> {% trans 'Sign up with Google' %}
+                        </span>
+                    </a>
+                    <hr data-title="OR">
+                    <div class="feature__body text-left">
+                        <form method="post" action="{{ form_url }}">
+                            {% crispy form %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

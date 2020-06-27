@@ -75,6 +75,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     FIELD_MAPPING = {
         'default': {
             'email': 'email',
+            'name': 'name',
+            'given_name': 'given_name',
+            'family_name': 'family_name',
+            'avatar_url': 'avatar_url',
         },
         'google': {
             'email': 'email',
