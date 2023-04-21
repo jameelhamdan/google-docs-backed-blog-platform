@@ -5,7 +5,7 @@ psycopg2==2.8.5
 git+https://github.com/nesdis/djongo.git@b67cea23b841d68e1832c42d19b45d995ac4a796
 jsonfield>=2.0.2
 django-jsoneditor>=0.0.12
-sqlparse==0.2.4
+sqlparse==0.4.4
 oauthlib
 dj_database_url
 django-crispy-forms==1.9.1
